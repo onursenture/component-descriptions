@@ -1,0 +1,452 @@
+<html>
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 12px;
+      color: #333;
+      background: #fff;
+      padding: 16px;
+    }
+
+    h2 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    .section {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 10px;
+      font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      border-color: #18a0fb;
+    }
+
+    .prefix-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .prefix-row label {
+      margin-bottom: 0;
+      white-space: nowrap;
+    }
+
+    .prefix-row input {
+      flex: 1;
+      height: 32px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 0 10px;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .prefix-row input:focus {
+      border-color: #18a0fb;
+    }
+
+    .help-text {
+      font-size: 10px;
+      color: #999;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    button {
+      height: 32px;
+      padding: 0 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-primary {
+      background: #18a0fb;
+      color: white;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background: #0d8ce0;
+    }
+
+    .btn-primary:disabled {
+      background: #b3d9f7;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: #333;
+      border: 1px solid #e0e0e0;
+    }
+
+    .btn-secondary:hover {
+      background: #f5f5f5;
+    }
+
+    .status {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      line-height: 1.5;
+      display: none;
+    }
+
+    .status.success {
+      display: block;
+      background: #e6f9e6;
+      color: #1a7a1a;
+      border: 1px solid #b3e6b3;
+    }
+
+    .status.error {
+      display: block;
+      background: #fde8e8;
+      color: #c53030;
+      border: 1px solid #f5c6c6;
+    }
+
+    .status.info {
+      display: block;
+      background: #e8f4fd;
+      color: #2b6cb0;
+      border: 1px solid #bee3f8;
+    }
+
+    .mode-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 16px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .mode-tab {
+      flex: 1;
+      height: 32px;
+      border: none;
+      background: #f5f5f5;
+      color: #666;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 0;
+      border-radius: 0;
+      transition: all 0.15s;
+    }
+
+    .mode-tab:hover {
+      background: #eee;
+    }
+
+    .mode-tab.active {
+      background: #18a0fb;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 11px;
+    }
+
+    .preview-table th {
+      text-align: left;
+      padding: 6px 8px;
+      background: #f5f5f5;
+      border-bottom: 1px solid #e0e0e0;
+      font-weight: 600;
+      color: #666;
+    }
+
+    .preview-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .preview-table .component-name {
+      font-weight: 500;
+      color: #18a0fb;
+      white-space: nowrap;
+    }
+
+    .preview-table .description {
+      color: #555;
+    }
+
+    .match-status {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .match-status.matched {
+      background: #e6f9e6;
+      color: #1a7a1a;
+    }
+
+    .match-status.unmatched {
+      background: #f0f0f0;
+      color: #999;
+    }
+
+    .preview-scroll {
+      max-height: 180px;
+      overflow-y: auto;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+      font-size: 11px;
+      color: #666;
+    }
+
+    .stats span {
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="section">
+    <div class="prefix-row">
+      <label>Prefix:</label>
+      <input type="text" id="prefix" value="pi-" placeholder="e.g. pi-" />
+    </div>
+  </div>
+
+  <div class="mode-tabs">
+    <button class="mode-tab active" data-tab="input" onclick="switchTab('input')">Input</button>
+    <button class="mode-tab" data-tab="preview" onclick="switchTab('preview')">Preview</button>
+  </div>
+
+  <div id="tab-input" class="tab-content active">
+    <div class="section">
+      <label>Paste your description list:</label>
+      <textarea id="descriptions" placeholder="- - pi-slash: divide, separator, diagonal, fraction, slash
+- - pi-sidebar: panel, navigation, drawer, layout, sidebar
+- - pi-note-sticky: memo, post-it, reminder, annotation, note-sticky"></textarea>
+      <div class="help-text">
+        Format: <strong>- - prefix-name: description text</strong><br>
+        The prefix (e.g. "pi-") will be stripped to match your Figma component names.
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-preview" class="tab-content">
+    <div class="section">
+      <div class="stats" id="stats"></div>
+      <div class="preview-scroll">
+        <table class="preview-table">
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Description</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="preview-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="button-row">
+    <button class="btn-secondary" onclick="parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')">Cancel</button>
+    <button class="btn-primary" id="apply-btn" onclick="applyDescriptions()">Apply Descriptions</button>
+  </div>
+
+  <div id="status" class="status"></div>
+
+  <script>
+    let componentNames = [];
+
+    function switchTab(tab) {
+      document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+      document.getElementById(`tab-${tab}`).classList.add('active');
+
+      if (tab === 'preview') {
+        updatePreview();
+      }
+    }
+
+    function parseDescriptions(text) {
+      const prefix = document.getElementById('prefix').value.trim();
+      const lines = text.split('\n').filter(l => l.trim());
+      const entries = [];
+
+      for (const line of lines) {
+        // Remove leading "- -" or "--" or "-" markers
+        let cleaned = line.replace(/^[\s\-]*/, '').trim();
+
+        // Match pattern: prefix-name: description
+        const colonIdx = cleaned.indexOf(':');
+        if (colonIdx === -1) continue;
+
+        const fullName = cleaned.substring(0, colonIdx).trim();
+        const description = cleaned.substring(colonIdx + 1).trim();
+
+        // Strip prefix to get component name
+        let componentName = fullName;
+        if (prefix && fullName.startsWith(prefix)) {
+          componentName = fullName.substring(prefix.length);
+        }
+
+        if (componentName && description) {
+          entries.push({ componentName, description, fullName });
+        }
+      }
+
+      return entries;
+    }
+
+    function updatePreview() {
+      const text = document.getElementById('descriptions').value;
+      const entries = parseDescriptions(text);
+      const tbody = document.getElementById('preview-body');
+      const statsEl = document.getElementById('stats');
+
+      let matchCount = 0;
+      let html = '';
+
+      for (const entry of entries) {
+        const isMatched = componentNames.some(
+          n => n.toLowerCase() === entry.componentName.toLowerCase()
+        );
+        if (isMatched) matchCount++;
+
+        html += `<tr>
+          <td class="component-name">${escapeHtml(entry.componentName)}</td>
+          <td class="description">${escapeHtml(entry.description)}</td>
+          <td><span class="match-status ${isMatched ? 'matched' : 'unmatched'}">${isMatched ? 'Found' : 'Not found'}</span></td>
+        </tr>`;
+      }
+
+      tbody.innerHTML = html;
+      statsEl.innerHTML = `<div>Parsed: <span>${entries.length}</span></div><div>Matched: <span>${matchCount}</span> / ${componentNames.length} components</div>`;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function applyDescriptions() {
+      const text = document.getElementById('descriptions').value;
+      const entries = parseDescriptions(text);
+
+      if (entries.length === 0) {
+        showStatus('No valid entries found. Check your input format.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('apply-btn');
+      btn.disabled = true;
+      btn.textContent = 'Applying...';
+
+      parent.postMessage({
+        pluginMessage: {
+          type: 'apply-descriptions',
+          entries: entries
+        }
+      }, '*');
+    }
+
+    function showStatus(message, type) {
+      const el = document.getElementById('status');
+      el.className = `status ${type}`;
+      el.textContent = message;
+    }
+
+    // Listen for messages from plugin code
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      if (msg.type === 'component-names') {
+        componentNames = msg.names;
+      }
+
+      if (msg.type === 'result') {
+        const btn = document.getElementById('apply-btn');
+        btn.disabled = false;
+        btn.textContent = 'Apply Descriptions';
+
+        if (msg.error) {
+          showStatus(msg.error, 'error');
+        } else {
+          showStatus(
+            `Done! Updated ${msg.updated} component(s).` +
+            (msg.notFound.length > 0 ? ` Not found: ${msg.notFound.join(', ')}` : ''),
+            msg.updated > 0 ? 'success' : 'info'
+          );
+        }
+      }
+    };
+
+    // Request component names on load
+    parent.postMessage({ pluginMessage: { type: 'get-components' } }, '*');
+  </script>
+</body>
+</html>

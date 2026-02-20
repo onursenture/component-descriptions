@@ -1,0 +1,12 @@
+{
+  "name": "component-descriptions",
+  "version": "1.0.0",
+  "description": "Figma plugin to bulk-apply component descriptions from a text list",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.100.0",
+    "typescript": "^5.3.0"
+  }
+}
