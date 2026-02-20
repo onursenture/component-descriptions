@@ -263,6 +263,74 @@
     .stats span {
       font-weight: 600;
     }
+
+    .filter-tabs {
+      display: flex;
+      gap: 4px;
+      margin-top: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-tab {
+      height: 26px;
+      padding: 0 10px;
+      border: 1px solid #e0e0e0;
+      background: #fff;
+      color: #666;
+      font-size: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 13px;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .filter-tab:hover {
+      background: #f5f5f5;
+    }
+
+    .filter-tab.active {
+      background: #18a0fb;
+      color: white;
+      border-color: #18a0fb;
+    }
+
+    .filter-tab .count {
+      font-weight: 700;
+    }
+
+    .filter-tab.has-issues {
+      border-color: #e53e3e;
+      color: #e53e3e;
+    }
+
+    .filter-tab.has-issues.active {
+      background: #e53e3e;
+      color: white;
+      border-color: #e53e3e;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 8px 8px 4px;
+      background: #fafafa;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .missing-component-row td {
+      background: #fff5f5;
+    }
+
+    .missing-component-row .component-name {
+      color: #e53e3e;
+    }
   </style>
 </head>
 <body>
@@ -294,6 +362,7 @@
   <div id="tab-preview" class="tab-content">
     <div class="section">
       <div class="stats" id="stats"></div>
+      <div class="filter-tabs" id="filter-tabs"></div>
       <div class="preview-scroll">
         <table class="preview-table">
           <thead>
@@ -318,6 +387,15 @@
 
   <script>
     let componentNames = [];
+    let currentFilter = 'all';
+
+    // Cache for parsed preview data
+    let lastPreviewData = {
+      entries: [],
+      matchedEntries: [],
+      unmatchedEntries: [],
+      missingComponents: []
+    };
 
     function switchTab(tab) {
       document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
@@ -360,30 +438,117 @@
       return entries;
     }
 
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+      renderTable();
+    }
+
     function updatePreview() {
       const text = document.getElementById('descriptions').value;
       const entries = parseDescriptions(text);
-      const tbody = document.getElementById('preview-body');
-      const statsEl = document.getElementById('stats');
 
-      let matchCount = 0;
-      let html = '';
+      // Classify each entry
+      const matchedEntries = [];
+      const unmatchedEntries = [];
+      const matchedComponentNamesLower = new Set();
 
       for (const entry of entries) {
         const isMatched = componentNames.some(
           n => n.toLowerCase() === entry.componentName.toLowerCase()
         );
-        if (isMatched) matchCount++;
+        if (isMatched) {
+          matchedEntries.push(entry);
+          matchedComponentNamesLower.add(entry.componentName.toLowerCase());
+        } else {
+          unmatchedEntries.push(entry);
+        }
+      }
 
-        html += `<tr>
-          <td class="component-name">${escapeHtml(entry.componentName)}</td>
-          <td class="description">${escapeHtml(entry.description)}</td>
-          <td><span class="match-status ${isMatched ? 'matched' : 'unmatched'}">${isMatched ? 'Found' : 'Not found'}</span></td>
-        </tr>`;
+      // Find Figma components that have NO matching entry in the list
+      const missingComponents = componentNames.filter(
+        name => !matchedComponentNamesLower.has(name.toLowerCase())
+      );
+
+      lastPreviewData = { entries, matchedEntries, unmatchedEntries, missingComponents };
+
+      // Update stats
+      const statsEl = document.getElementById('stats');
+      statsEl.innerHTML =
+        `<div>Parsed: <span>${entries.length}</span></div>` +
+        `<div>Matched: <span>${matchedEntries.length}</span> / ${componentNames.length} components</div>`;
+
+      // Update filter tabs
+      const filterTabsEl = document.getElementById('filter-tabs');
+      filterTabsEl.innerHTML =
+        `<button class="filter-tab ${currentFilter === 'all' ? 'active' : ''}" data-filter="all" onclick="setFilter('all')">` +
+          `All <span class="count">${entries.length}</span></button>` +
+        `<button class="filter-tab ${currentFilter === 'matched' ? 'active' : ''}" data-filter="matched" onclick="setFilter('matched')">` +
+          `✓ Matched <span class="count">${matchedEntries.length}</span></button>` +
+        `<button class="filter-tab ${unmatchedEntries.length > 0 ? 'has-issues' : ''} ${currentFilter === 'unmatched' ? 'active' : ''}" data-filter="unmatched" onclick="setFilter('unmatched')">` +
+          `Not in Figma <span class="count">${unmatchedEntries.length}</span></button>` +
+        `<button class="filter-tab ${missingComponents.length > 0 ? 'has-issues' : ''} ${currentFilter === 'missing' ? 'active' : ''}" data-filter="missing" onclick="setFilter('missing')">` +
+          `Not in List <span class="count">${missingComponents.length}</span></button>`;
+
+      renderTable();
+    }
+
+    function renderTable() {
+      const { entries, matchedEntries, unmatchedEntries, missingComponents } = lastPreviewData;
+      const tbody = document.getElementById('preview-body');
+      let html = '';
+
+      if (currentFilter === 'all') {
+        // Show all parsed entries
+        for (const entry of entries) {
+          const isMatched = matchedEntries.includes(entry);
+          html += buildEntryRow(entry, isMatched);
+        }
+        // Append missing components at the end
+        if (missingComponents.length > 0) {
+          html += `<tr><td colspan="3" class="section-label">⚠ ${missingComponents.length} Figma component(s) with no description in list</td></tr>`;
+          for (const name of missingComponents) {
+            html += `<tr class="missing-component-row">
+              <td class="component-name">${escapeHtml(name)}</td>
+              <td class="description" style="color:#999;font-style:italic;">— no description provided —</td>
+              <td><span class="match-status unmatched">Missing</span></td>
+            </tr>`;
+          }
+        }
+      } else if (currentFilter === 'matched') {
+        for (const entry of matchedEntries) {
+          html += buildEntryRow(entry, true);
+        }
+      } else if (currentFilter === 'unmatched') {
+        if (unmatchedEntries.length === 0) {
+          html += `<tr><td colspan="3" style="padding:16px;text-align:center;color:#999;">All parsed entries match a Figma component ✓</td></tr>`;
+        }
+        for (const entry of unmatchedEntries) {
+          html += buildEntryRow(entry, false);
+        }
+      } else if (currentFilter === 'missing') {
+        if (missingComponents.length === 0) {
+          html += `<tr><td colspan="3" style="padding:16px;text-align:center;color:#999;">All Figma components have a description in the list ✓</td></tr>`;
+        }
+        for (const name of missingComponents) {
+          html += `<tr class="missing-component-row">
+            <td class="component-name">${escapeHtml(name)}</td>
+            <td class="description" style="color:#999;font-style:italic;">— no description provided —</td>
+            <td><span class="match-status unmatched">Missing</span></td>
+          </tr>`;
+        }
       }
 
       tbody.innerHTML = html;
-      statsEl.innerHTML = `<div>Parsed: <span>${entries.length}</span></div><div>Matched: <span>${matchCount}</span> / ${componentNames.length} components</div>`;
+    }
+
+    function buildEntryRow(entry, isMatched) {
+      return `<tr>
+        <td class="component-name">${escapeHtml(entry.componentName)}</td>
+        <td class="description">${escapeHtml(entry.description)}</td>
+        <td><span class="match-status ${isMatched ? 'matched' : 'unmatched'}">${isMatched ? 'Found' : 'Not found'}</span></td>
+      </tr>`;
     }
 
     function escapeHtml(text) {
